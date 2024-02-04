@@ -3,34 +3,37 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/mishaRomanov/redis-project/internal/storage"
 	"io"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
-	"github.com/redis/go-redis/v9"
 	"github.com/sirupsen/logrus"
 )
 
-type handler struct {
-	redis *redis.Client
+type Handler struct {
+	redis storage.Storager
 }
 
 // поля делаем экспортируемые чтобы json.Unmarshall смог распарсить тело запроса
 type requestBody struct {
-	TaskID      string `json:"task_id"`
+	OrderID     string `json:"order-id"`
 	Description string `json:"description"`
 }
 
 // Info handles /about request
-func (h *handler) Info(ctx echo.Context) error {
-	logrus.Infoln("New request ")
-	return ctx.String(http.StatusOK, "Hello world! Handler works.")
+func (h *Handler) Info(ctx echo.Context) error {
+	logrus.Infoln("New request")
+	return ctx.String(http.StatusOK,
+		`Hello! This service lets you create and track orders. 
+Make a POST request to /new-order to create an order.
+Use json and "order-id" and "description" fields.`)
 }
 
-// InsertValue handles /add POST request
-func (h *handler) InsertValue(ctx echo.Context) error {
-	logrus.Infof("New /add request")
-	//creating a requestbody struct piece
+// NewOrder handles /new-order POST request
+func (h *Handler) NewOrder(ctx echo.Context) error {
+	logrus.Infof("New order POST request")
+	//creating a request body struct piece
 	data := requestBody{}
 
 	//defer the closure of the body
@@ -51,15 +54,19 @@ func (h *handler) InsertValue(ctx echo.Context) error {
 	}
 
 	//logging
-	logrus.Infof("%s\t%s", data.Description, data.TaskID)
-
-	return ctx.String(http.StatusOK, fmt.Sprintf("%s\t%s", data.Description, data.TaskID))
+	logrus.Infof("%s\t%s", data.Description, data.OrderID)
+	err = h.redis.NewOrder(data.OrderID, data.Description)
+	if err != nil {
+		logrus.Error(err)
+		return ctx.String(http.StatusInternalServerError, "Error while writing values to redis")
+	}
+	return ctx.String(http.StatusOK, fmt.Sprintf("%s\t%s", data.Description, data.OrderID))
 }
 
 // NewHandler  creates handler instance
-func NewHandler(client *redis.Client) *handler {
-	instance := handler{
-		redis: client,
+func NewHandler(redisStorager storage.Storager) *Handler {
+	instance := Handler{
+		redis: redisStorager,
 	}
 	return &instance
 }

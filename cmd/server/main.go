@@ -1,12 +1,12 @@
 package main
 
 import (
+	"github.com/mishaRomanov/redis-project/config"
 	"github.com/mishaRomanov/redis-project/internal/handlers"
 	"github.com/mishaRomanov/redis-project/internal/storage"
 
 	//
 	"github.com/labstack/echo/v4"
-	"github.com/mishaRomanov/redis-project/config"
 	"github.com/sirupsen/logrus"
 )
 

@@ -3,11 +3,13 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/mishaRomanov/redis-project/internal/storage"
 	"io"
 	"net/http"
-
+	"strings"
+	//
 	"github.com/labstack/echo/v4"
+	"github.com/mishaRomanov/redis-project/internal/dialer"
+	"github.com/mishaRomanov/redis-project/internal/storage"
 	"github.com/sirupsen/logrus"
 )
 
@@ -16,9 +18,9 @@ type Handler struct {
 }
 
 // поля делаем экспортируемые чтобы json.Unmarshall смог распарсить тело запроса
-type requestBody struct {
-	OrderID     string `json:"order-id"`
-	Description string `json:"description"`
+type RequestBody struct {
+	OrderID   string `json:"order-id"`
+	OrderDESC string `json:"order-desc"`
 }
 
 // Info handles /about request
@@ -34,7 +36,7 @@ Use json and "order-id" and "description" fields.`)
 func (h *Handler) NewOrder(ctx echo.Context) error {
 	logrus.Infof("New order POST request")
 	//creating a request body struct piece
-	data := requestBody{}
+	data := RequestBody{}
 
 	//defer the closure of the body
 	defer ctx.Request().Body.Close()
@@ -54,13 +56,21 @@ func (h *Handler) NewOrder(ctx echo.Context) error {
 	}
 
 	//logging
-	logrus.Infof("%s\t%s", data.Description, data.OrderID)
-	err = h.redis.NewOrder(data.OrderID, data.Description)
+	logrus.Infof("%s:\t%s", data.OrderID, data.OrderDESC)
+	err = h.redis.NewOrder(data.OrderID, data.OrderDESC)
 	if err != nil {
 		logrus.Error(err)
 		return ctx.String(http.StatusInternalServerError, "Error while writing values to redis")
 	}
-	return ctx.String(http.StatusOK, fmt.Sprintf("%s\t%s", data.Description, data.OrderID))
+
+	//re-send the json body to client side and checking whether we get an error or not
+	err = dialer.SendOrder(strings.NewReader(string(r)))
+	if err != nil {
+		logrus.Errorf("%v", err)
+		return ctx.String(http.StatusInternalServerError, err.Error())
+	}
+
+	return ctx.String(http.StatusOK, fmt.Sprintf("%s\t%s", data.OrderDESC, data.OrderID))
 }
 
 // NewHandler  creates handler instance

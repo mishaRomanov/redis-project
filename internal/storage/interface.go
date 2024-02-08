@@ -4,4 +4,5 @@ package storage
 type Storager interface {
 	NewOrder(string, string) error
 	CloseOrder(string) error
+	LookUp(string) bool
 }

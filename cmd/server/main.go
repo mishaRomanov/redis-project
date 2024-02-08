@@ -32,6 +32,9 @@ func main() {
 	//handle POST /new-order
 	service.POST("/new-order", handlerService.NewOrder)
 
+	//handle POST /delete-order
+	service.POST("/delete-order", handlerService.CloseOrder)
+
 	//starting a service and catching error
 	serviceError := service.Start(":8080")
 	if serviceError != nil {

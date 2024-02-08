@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/mishaRomanov/redis-project/internal/dialer"
 	"io"
 	"net/http"
 
@@ -25,16 +26,24 @@ func listen() {
 		var a string
 		fmt.Scanln(&a)
 		switch {
+		//list all orders
 		case a == "/all":
 			logrus.Println(orders)
+		//close the order
 		case a == "/done":
-			logrus.Println("ok. which one is done? the id")
+			logrus.Print("ok. which one is done? the id:")
+			fmt.Scan(&a)
+			err := dialer.CloseOrder(a)
+			if err != nil {
+				logrus.Errorf("error while closing given order: %v\n", err)
+			}
 		}
 	}
 }
 
 // this is client that receives and displays orders
 func main() {
+	logrus.Println("client up....")
 	logrus.Println("type /all to see all orders.")
 	client := echo.New()
 	//listen to input

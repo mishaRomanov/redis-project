@@ -10,4 +10,5 @@ Send a `POST` request to `localhost:8080/new-order` with json body like this `{"
 This creates a new instance in `redis` database which runs in container and then passes it to client side.
 
 When using `client` container in interactive mode, just type `/all` to see all active orders or `/done` to close any order you've done.
+
 ![how_to_use](howtouse.gif)

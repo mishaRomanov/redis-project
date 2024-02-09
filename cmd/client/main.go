@@ -17,7 +17,8 @@ type Order struct {
 }
 
 var (
-	orders []Order
+	//creating a map storage for orders
+	ordersMap = make(map[string]string)
 )
 
 // func that listens to input
@@ -28,7 +29,13 @@ func listen() {
 		switch {
 		//list all orders
 		case a == "/all":
-			logrus.Println(orders)
+			if len(ordersMap) == 0 {
+				logrus.Println("no active orders found.")
+			}
+			for k, v := range ordersMap {
+				//printing all orders
+				logrus.Printf("Order %s: %s\n", k, v)
+			}
 		//close the order
 		case a == "/done":
 			logrus.Print("ok. which one is done? the id:")
@@ -37,6 +44,8 @@ func listen() {
 			if err != nil {
 				logrus.Errorf("error while closing given order: %v\n", err)
 			}
+			//deleting the order from map
+			delete(ordersMap, a)
 		}
 	}
 }
@@ -70,7 +79,7 @@ func main() {
 		}
 
 		//adding new order to the list
-		orders = append(orders, req)
+		ordersMap[req.OrderID] = req.OrderDESC
 
 		return ctx.String(http.StatusOK, "OK")
 	})

@@ -84,7 +84,7 @@ func (h *Handler) NewOrder(ctx echo.Context) error {
 
 // CloseOrder handler closes the given order
 func (h *Handler) CloseOrder(ctx echo.Context) error {
-	logrus.Println("Received request to close order --- log from handler")
+	logrus.Println("Received request to close order...")
 	data, _ := parseBody(ctx)
 	if err := h.redis.CloseOrder(data.OrderID); err != nil {
 		logrus.Errorf("%v\n", err)

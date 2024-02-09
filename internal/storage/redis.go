@@ -65,7 +65,6 @@ func (r *RedisStorage) LookUp(id string) bool {
 	res := r.Redis.Get(context.Background(), id)
 	//if redis error is redis.Nil then we return false i.e. not found
 	if res.Err() == redis.Nil {
-		logrus.Errorf("key %s not found", id)
 		return false
 	}
 	return true

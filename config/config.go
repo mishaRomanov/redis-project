@@ -8,7 +8,7 @@ import (
 // config struct
 type Config struct {
 	Port     string `env:"PORT"`
-	Password string `env:"PASSWORD"`
+	Password string `env:"PASSWORD" envDefault:""`
 	DB       int    `env:"DB" envDefault:"0"`
 }
 

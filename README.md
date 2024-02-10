@@ -1,9 +1,13 @@
 # A simple to-do list application with echo, redis and docker 
 
-## This project constists of client side and server side. Server accepts "orders" to complete. It verifies everything and then passes them to client side 
-## Client has an ability to close given orders i.e complete them by interacting with terminal and give information through `stdin`
+## This project constists of client side and server side. Server accepts "orders" to complete. It verifies everything and then passes them to client side. Client has an ability to close given orders i.e complete them by interacting with terminal and give information through `stdin`
 ### Type `/all` to see all orders
 ### Type `/done` to mark order as completed and delete it
+
+## Starting with the project 
+Clone my repository to your machine with ```git clone github.com/mishaRomanov/redis-project```
+## Running the whole thing
+Go to cloned directory and do ``docker compose up``
 ## How to use 
 Send a `POST` request to `localhost:8080/new-order` with json body like this `{"order-id":"1","order-desc":"burger"}`. 
 

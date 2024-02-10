@@ -1,0 +1,20 @@
+FROM golang:alpine as first_stage
+
+WORKDIR /server
+
+COPY go.mod /server
+COPY go.sum /server
+
+RUN go mod tidy
+
+COPY . /server
+
+EXPOSE 8080
+
+RUN go build -o server_app cmd/server/main.go
+
+FROM alpine
+
+COPY --from=first_stage /server/server_app .
+
+CMD ["./server_app"]

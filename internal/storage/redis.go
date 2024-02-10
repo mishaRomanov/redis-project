@@ -15,7 +15,7 @@ type RedisStorage struct {
 // NewInstance creates a redis instance
 func NewInstance(port string, password string, db int) Storager {
 	storage := redis.NewClient(&redis.Options{
-		Addr:     fmt.Sprintf("localhost:%s", port),
+		Addr:     fmt.Sprintf("redis:%s", port),
 		Password: password,
 		DB:       db,
 	})

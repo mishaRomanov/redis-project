@@ -14,6 +14,10 @@ type RedisStorage struct {
 
 // NewInstance creates a redis instance
 func NewInstance(port string, password string, db int) Storager {
+	if port == "" {
+		logrus.Errorln("NewInstance func error: port cannot be empty")
+		return nil
+	}
 	storage := redis.NewClient(&redis.Options{
 		Addr:     fmt.Sprintf("redis:%s", port),
 		Password: password,

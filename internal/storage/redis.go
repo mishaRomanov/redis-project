@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+
+	"github.com/google/uuid"
 	"github.com/redis/go-redis/v9"
 	"github.com/sirupsen/logrus"
 )
@@ -37,14 +39,17 @@ func NewInstance(port string, password string, db int) Storager {
 }
 
 // NewOrder creates an order
-func (r *RedisStorage) NewOrder(id string, desc string) error {
-	err := r.Redis.Set(context.Background(), id, desc, 0)
+func (r *RedisStorage) NewOrder(desc string) (string, error) {
+	//creating orderID using uuid package
+	orderID := uuid.New().String()
+	//setting order in redis
+	err := r.Redis.Set(context.Background(), orderID, desc, 0)
 	if err.Err() != nil {
 		logrus.Errorf("error while writing order to redis: %v\n", err.Err())
-		return err.Err()
+		return "", err.Err()
 	}
-	logrus.Infoln("New order added.")
-	return nil
+	logrus.Infoln("New order added. Order id is: %s\n", orderID)
+	return orderID, nil
 }
 
 // CloseOrder closes the order

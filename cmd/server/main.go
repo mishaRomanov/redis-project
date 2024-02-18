@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/mishaRomanov/redis-project/config"
+	"github.com/mishaRomanov/redis-project/internal/config"
 	"github.com/mishaRomanov/redis-project/internal/handlers"
 	"github.com/mishaRomanov/redis-project/internal/storage"
 
@@ -26,14 +26,11 @@ func main() {
 	//creating handler instance by inserting database object inside
 	handlerService := handlers.NewHandler(dbredis)
 
-	//handle get /info
+	//handles get /info
 	service.GET("/info", handlerService.Info)
 
-	//handle POST /new-order
-	service.POST("/new-order", handlerService.NewOrder)
-
-	//handle POST /delete-order
-	service.POST("/delete-order", handlerService.CloseOrder)
+	//handles multiple types of requests
+	service.Any("/order", handlerService.GeneralHandler)
 
 	//starting a service and catching error
 	serviceError := service.Start(":8080")

@@ -7,7 +7,7 @@
 ## Starting with the project 
 Clone my repository to your machine with ```git clone github.com/mishaRomanov/redis-project```
 ## Running the whole thing
-Go to cloned directory and do ``docker compose up``
+Go to cloned directory and do ``docker compose up -d``
 ## How to use 
 Send a `POST` request to `localhost:8080/new-order` with json body like this `{"order-id":"1","order-desc":"burger"}`. 
 

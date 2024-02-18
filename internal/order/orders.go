@@ -9,6 +9,12 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// OrderReceiver struct is used to parse order data from request body
+type OrderReceiver struct {
+	ID          string `json:"id,omitempty"`
+	Description string `json:"description,omitempty"`
+}
+
 // SendOrder call client api and sends order there
 // WARNING ! DEFAULT CLIENT PORT IS 3030
 func SendOrder(body io.Reader) error {

@@ -11,6 +11,7 @@ import (
 )
 
 func main() {
+	logrus.Println("server up....")
 	//creating a service
 	service := echo.New()
 
@@ -21,7 +22,10 @@ func main() {
 	}
 
 	//creating a redis instance
-	dbredis := storage.NewInstance(cfg.Port, cfg.Password, cfg.DB)
+	dbredis, redisError := storage.NewInstance(cfg.Port, cfg.Password, cfg.DB)
+	if redisError != nil {
+		logrus.Fatalf("%v", redisError)
+	}
 
 	//creating handler instance by inserting database object inside
 	handlerService := handlers.NewHandler(dbredis)
@@ -29,8 +33,11 @@ func main() {
 	//handles get /info
 	service.GET("/info", handlerService.Info)
 
-	//handles multiple types of requests
-	service.Any("/order", handlerService.GeneralHandler)
+	//handles new order insertion
+	service.POST("/order", handlerService.NewOrder)
+
+	//handles order deletion
+	service.DELETE("/order/:id", handlerService.CloseOrder)
 
 	//starting a service and catching error
 	serviceError := service.Start(":8080")

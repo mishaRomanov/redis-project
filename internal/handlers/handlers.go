@@ -42,8 +42,11 @@ func (h *Handler) NewOrder(ctx echo.Context) error {
 	//creating a request body struct piece
 	data, _ := ParseBody(ctx)
 
+	// checking whether body is empty or not
+	if data.Description == "" {
+		return ctx.String(http.StatusBadRequest, "Empty description")
+	}
 	//writing the order to the database and creating an orderID
-
 	orderID, err := h.redis.NewOrder(data.Description)
 	if err != nil {
 		logrus.Error(err)

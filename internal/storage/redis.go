@@ -15,10 +15,10 @@ type RedisStorage struct {
 }
 
 // NewInstance creates a redis instance
-func NewInstance(port string, password string, db int) Storager {
+func NewInstance(port string, password string, db int) (Storager, error) {
 	if port == "" {
 		logrus.Errorln("NewInstance func error: port cannot be empty")
-		return nil
+		return nil, errors.New("redis connect error: port cannot be empty")
 	}
 	storage := redis.NewClient(&redis.Options{
 		Addr:     fmt.Sprintf("redis:%s", port),
@@ -30,18 +30,18 @@ func NewInstance(port string, password string, db int) Storager {
 	err := storage.Echo(context.Background(), "~~~Connection to redis established~~~")
 	if err.Err() != nil {
 		logrus.Errorf("%v", err.Err())
-		return &RedisStorage{}
+		return &RedisStorage{}, err.Err()
 	}
 
 	//logging result. it should display the text given to storage.Echo method
 	logrus.Infoln(err.Result())
-	return &RedisStorage{Redis: storage}
+	return &RedisStorage{Redis: storage}, nil
 }
 
 // NewOrder creates an order
 func (r *RedisStorage) NewOrder(desc string) (string, error) {
 	//creating orderID using uuid package
-	orderID := uuid.New().String()
+	orderID := uuid.New().String()[:10]
 	//setting order in redis
 	err := r.Redis.Set(context.Background(), orderID, desc, 0)
 	if err.Err() != nil {

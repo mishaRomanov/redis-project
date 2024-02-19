@@ -1,13 +1,15 @@
 package handlers
 
 import (
+	"encoding/json"
 	"fmt"
+	"github.com/mishaRomanov/redis-project/internal/entities"
+	"github.com/mishaRomanov/redis-project/internal/order"
 	"github.com/mishaRomanov/redis-project/internal/storage"
+	"io"
 	"net/http"
-	"strings"
 	//
 	"github.com/labstack/echo/v4"
-	"github.com/mishaRomanov/redis-project/internal/order"
 	"github.com/sirupsen/logrus"
 )
 
@@ -24,18 +26,6 @@ func NewHandler(redisStorager storage.Storager) *Handler {
 	return &instance
 }
 
-// GeneralHandler is a general handler for all types of requests, it decides what to do with the request
-func (h *Handler) GeneralHandler(ctx echo.Context) error {
-	//determining the type of the request
-	switch ctx.Request().Method {
-	case http.MethodPost:
-		return h.NewOrder(ctx)
-	case http.MethodDelete:
-		return h.CloseOrder(ctx)
-	}
-	return ctx.String(http.StatusMethodNotAllowed, "Try another method or visit /info endpoint")
-}
-
 // Info handles /about request
 func (h *Handler) Info(ctx echo.Context) error {
 	logrus.Infoln("New request")
@@ -50,7 +40,9 @@ For more information visit https://github.com/mishaRomanov/redis-project`)
 func (h *Handler) NewOrder(ctx echo.Context) error {
 	logrus.Infof("New order POST request")
 	//creating a request body struct piece
-	data, body := order.ParseBody(ctx)
+	data, _ := ParseBody(ctx)
+
+	//writing the order to the database and creating an orderID
 
 	orderID, err := h.redis.NewOrder(data.Description)
 	if err != nil {
@@ -59,7 +51,7 @@ func (h *Handler) NewOrder(ctx echo.Context) error {
 	}
 
 	//re-send the json body to client side and checking whether we get an error or not
-	err = order.SendOrder(strings.NewReader(string(body)))
+	err = order.SendOrder(entities.CreateOrderBody(orderID, data.Description))
 	if err != nil {
 		logrus.Errorf("%v", err)
 		return ctx.String(http.StatusInternalServerError, err.Error())
@@ -68,32 +60,39 @@ func (h *Handler) NewOrder(ctx echo.Context) error {
 }
 
 // Deletes the order
+// /////////////////
+// Тут доступ должен быть только со стороны клиента
+// мб сделать авторизацию через токен? хз короче надо подумать. но короче этот эндпоинт не должен быть доступен извне
+// он должен вызываться только через хендлер клиента
 func (h *Handler) CloseOrder(ctx echo.Context) error {
-	logrus.Println("Received request to close order...")
-	data, _ := order.ParseBody(ctx)
-	if err := h.redis.CloseOrder(data.ID); err != nil {
+	logrus.Infof("New request to delete order")
+	orderID := ctx.Param("id")
+	if err := h.redis.CloseOrder(orderID); err != nil {
 		logrus.Errorf("%v\n", err)
 		return ctx.String(http.StatusBadRequest, err.Error())
 	}
-	return ctx.String(http.StatusOK, fmt.Sprintf("Order %s closed.", data.ID))
+	return ctx.String(http.StatusOK, fmt.Sprintf("Order %s closed.", orderID))
 }
+
+////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
 
 // client add
 func ClientHandlerAdd(ctx echo.Context) error {
-	data, body := order.ParseBody(ctx)
+	data, body := ParseBody(ctx)
 	if body == nil {
 		return ctx.String(http.StatusBadRequest, "Error while reading json body")
 	}
 	logrus.Infof("New order received: %s: %s\n", data.ID, data.Description)
 	//adding new order to the orders map
-	order.OrdersMap[data.ID] = data.Description
-	logrus.Println("All orders: %v", order.OrdersMap)
+	entities.OrdersMap[data.ID] = data.Description
+	logrus.Println(entities.OrdersMap)
 	return ctx.String(http.StatusOK, "OK")
 }
 
 // client delete
 func ClientHandlerDelete(ctx echo.Context) error {
-	data, body := order.ParseBody(ctx)
+	data, body := ParseBody(ctx)
 	if body == nil {
 		return ctx.String(http.StatusBadRequest, "Error while reading json body")
 	}
@@ -101,4 +100,25 @@ func ClientHandlerDelete(ctx echo.Context) error {
 		return ctx.String(http.StatusInternalServerError, err.Error())
 	}
 	return ctx.String(http.StatusOK, "OK")
+}
+
+// Parsebody.... parses the json body!! Wow!!
+func ParseBody(ctx echo.Context) (entities.OrderReceiver, []byte) {
+	//creating a request body struct piece
+	data := entities.OrderReceiver{}
+	//defer the closure of the body
+	defer ctx.Request().Body.Close()
+	//reading json body
+	r, err := io.ReadAll(ctx.Request().Body)
+	if err != nil {
+		logrus.Errorf("error while reading the body: %\n", err)
+		return entities.OrderReceiver{}, nil
+	}
+	//parsing json
+	err = json.Unmarshal(r, &data)
+	if err != nil {
+		logrus.Errorf("error while parsing json: %v\n", err)
+		return entities.OrderReceiver{}, nil
+	}
+	return data, r
 }

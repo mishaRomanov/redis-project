@@ -5,7 +5,6 @@ import (
 	"github.com/mishaRomanov/redis-project/internal/handlers"
 	"github.com/mishaRomanov/redis-project/internal/storage"
 
-	//
 	"github.com/labstack/echo/v4"
 	"github.com/sirupsen/logrus"
 )
@@ -24,8 +23,13 @@ func main() {
 	//creating a redis instance
 	dbredis, redisError := storage.NewInstance(cfg.Port, cfg.Password, cfg.DB)
 	if redisError != nil {
-		logrus.Fatalf("%v", redisError)
+		logrus.Errorf("%v", redisError)
 	}
+
+	//group for authorized users (client)
+	private := service.Group("/client")
+	
+	private.Use(config.TokenConfig())
 
 	//creating handler instance by inserting database object inside
 	handlerService := handlers.NewHandler(dbredis)
@@ -37,7 +41,10 @@ func main() {
 	service.POST("/order", handlerService.NewOrder)
 
 	//handles order deletion
-	service.DELETE("/order/:id", handlerService.CloseOrder)
+	private.DELETE("/order/:id", handlerService.CloseOrder)
+
+	//handles client registration
+	service.POST("/auth", handlerService.RegisterClientSession)
 
 	//starting a service and catching error
 	serviceError := service.Start(":8080")

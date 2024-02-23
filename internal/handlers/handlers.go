@@ -40,7 +40,7 @@ func NewHandler(redisStorager storage.Storager) *Handler {
 
 // Info handles /about request
 func (h *Handler) Info(ctx echo.Context) error {
-	logrus.Infoln("New request")
+	logrus.Infoln("New info request")
 	return ctx.String(http.StatusOK,
 		`Hello! This service lets you create and track orders. 
 Make a POST request to /order with a JSON body to create a new order.
@@ -49,7 +49,7 @@ For more information visit https://github.com/mishaRomanov/redis-project`)
 
 // NewOrder creates a new order
 func (h *Handler) NewOrder(ctx echo.Context) error {
-	logrus.Infof("New order POST request")
+	logrus.Infoln("New request to add order")
 	//creating a request body struct piece
 	data, _ := tools.ParseBody(ctx)
 
@@ -86,7 +86,7 @@ func (h *Handler) CloseOrder(ctx echo.Context) error {
 
 // RegisterClientSession makes authorization for client and returns a JWT token
 func (h *Handler) RegisterClientSession(ctx echo.Context) error {
-	logrus.Infoln("New request to create a token.")
+	logrus.Infoln("New request to create a token")
 	logrus.Infoln(ctx.Request().Body)
 	defer ctx.Request().Body.Close()
 
@@ -185,6 +185,7 @@ func checkAuthRequest(ctx echo.Context) (entities.AuthBody, error) {
 
 // Helper function to send authorization request to server
 func SendRequestToAuthAndWriteToken() {
+	//wait for server to start and then send request
 	time.Sleep(time.Second * 2)
 	token, err := SendAuthRequest(rand.Int())
 	if err != nil {

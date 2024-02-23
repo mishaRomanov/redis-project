@@ -2,7 +2,6 @@ package main
 
 import (
 	"github.com/labstack/echo/v4"
-	"github.com/mishaRomanov/redis-project/internal/entities"
 	"github.com/mishaRomanov/redis-project/internal/handlers"
 	"github.com/sirupsen/logrus"
 )
@@ -15,7 +14,6 @@ func main() {
 	handlers.SendRequestToAuthAndWriteToken()
 
 	client := echo.New()
-	logrus.Infof("Here is your token: %s\n", entities.Token)
 
 	//handles order placement
 	client.POST("/add", handlers.ClientHandlerAdd)

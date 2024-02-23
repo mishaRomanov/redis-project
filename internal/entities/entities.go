@@ -1,13 +1,10 @@
 package entities
 
-import (
-	"fmt"
-	"io"
-	"strings"
-)
-
 // OrdersMap stores orders in map so client can access them
-var OrdersMap = make(map[string]string)
+var (
+	OrdersMap = make(map[string]string)
+	Token     string
+)
 
 // OrderReceiver struct is used to parse order data from request body
 type OrderReceiver struct {
@@ -15,7 +12,18 @@ type OrderReceiver struct {
 	Description string `json:"description,omitempty"`
 }
 
-// CreateOrderBody is a helper function that creates a Reader that can be sent to client
-func CreateOrderBody(id, description string) io.Reader {
-	return strings.NewReader(fmt.Sprintf(`{"id":"%s","description":"%s"}`, id, description))
+// AuthBody struct to parse the body to
+type AuthBody struct {
+	Num             int  `json:"num,omitempty"`
+	IsClientService bool `json:"isClientService"`
+}
+
+// AuthResponse struct to send token with
+type AuthResponse struct {
+	Token string `json:"token,omitempty"`
+}
+
+// WriteToken writes jwt token to the builder
+func WriteToken(token string) string {
+	return "Bearer " + token
 }

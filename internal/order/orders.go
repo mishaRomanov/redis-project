@@ -2,9 +2,11 @@ package order
 
 import (
 	"fmt"
-	"github.com/sirupsen/logrus"
+	"github.com/mishaRomanov/redis-project/internal/entities"
 	"io"
 	"net/http"
+
+	"github.com/sirupsen/logrus"
 )
 
 // SendOrder call client api and sends order there
@@ -24,12 +26,13 @@ func SendOrder(body io.Reader) error {
 func CloseOrder(id string) error {
 	host := &http.Client{}
 	logrus.Printf("Received request to close order %s", id)
-	url := fmt.Sprintf("http://server:8080/order/%s", id)
+	url := fmt.Sprintf("http://server:8080/client/order/%s", id)
 	req, err := http.NewRequest(http.MethodDelete, url, nil)
 	if err != nil {
 		logrus.Errorf("%v\n", err)
 		return err
 	}
+	req.Header.Add("Authorization", entities.Token)
 	resp, err := host.Do(req)
 	if err != nil {
 		logrus.Errorf("%v\n", err)

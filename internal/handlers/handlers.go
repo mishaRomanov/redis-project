@@ -43,8 +43,7 @@ func (h *Handler) Info(ctx echo.Context) error {
 	logrus.Infoln("New request")
 	return ctx.String(http.StatusOK,
 		`Hello! This service lets you create and track orders. 
-Make a POST request to /order with a JSON body to create a new order. 
-You can also make a DELETE request to /order with a JSON body to close an order.
+Make a POST request to /order with a JSON body to create a new order.
 For more information visit https://github.com/mishaRomanov/redis-project`)
 }
 
@@ -85,31 +84,6 @@ func (h *Handler) CloseOrder(ctx echo.Context) error {
 	return ctx.String(http.StatusOK, fmt.Sprintf("Order %s closed.", orderID))
 }
 
-////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////
-
-// ClientHandlerAdd shares new orders with the client
-func ClientHandlerAdd(ctx echo.Context) error {
-	data, body := tools.ParseBody(ctx)
-	if body == nil {
-		return ctx.String(http.StatusBadRequest, "Error while reading json body")
-	}
-	logrus.Infof("New order received: %s: %s\n", data.ID, data.Description)
-	//adding new order to the orders map
-	entities.OrdersMap[data.ID] = data.Description
-	logrus.Println(entities.OrdersMap)
-	return ctx.String(http.StatusOK, "OK")
-}
-
-// ClientHandlerDelete deletes order through client interface
-func ClientHandlerDelete(ctx echo.Context) error {
-	orderID := ctx.Param("id")
-	if err := order.CloseOrder(orderID); err != nil {
-		return ctx.String(http.StatusInternalServerError, err.Error())
-	}
-	return ctx.String(http.StatusOK, "OK")
-}
-
 // RegisterClientSession makes authorization for client and returns a JWT token
 func (h *Handler) RegisterClientSession(ctx echo.Context) error {
 	logrus.Infoln("New request to create a token.")
@@ -141,6 +115,33 @@ func (h *Handler) RegisterClientSession(ctx echo.Context) error {
 	}
 	//returning the token with json
 	return ctx.JSON(http.StatusOK, entities.AuthResponse{Token: signed})
+}
+
+////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
+
+// ClientHandlerAdd shares new orders with the client
+func ClientHandlerAdd(ctx echo.Context) error {
+	data, body := tools.ParseBody(ctx)
+	if body == nil {
+		return ctx.String(http.StatusBadRequest, "Error while reading json body")
+	}
+	logrus.Infof("New order received: %s: %s\n", data.ID, data.Description)
+	//adding new order to the orders map
+	entities.OrdersMap[data.ID] = data.Description
+	for k, v := range entities.OrdersMap {
+		logrus.Printf("%s: %s\n", k, v)
+	}
+	return ctx.String(http.StatusOK, "OK")
+}
+
+// ClientHandlerDelete deletes order through client interface
+func ClientHandlerDelete(ctx echo.Context) error {
+	orderID := ctx.Param("id")
+	if err := order.CloseOrder(orderID); err != nil {
+		return ctx.String(http.StatusInternalServerError, err.Error())
+	}
+	return ctx.String(http.StatusOK, "OK")
 }
 
 // SendAuthRequest sends request to server to authorize client

@@ -9,7 +9,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// SendOrder call client api and sends order there
+// The server send a call to a client api and sends order there
 // WARNING ! DEFAULT CLIENT PORT IS 3030
 func SendOrder(body io.Reader) error {
 	resp, err := http.Post("http://client:3030/add", "application/json", body)
@@ -21,11 +21,11 @@ func SendOrder(body io.Reader) error {
 	return nil
 }
 
-// CloseOrder calls server api for order closure
+// The client calls server api to close the order in redis
 // WARNING ! DEFAULT SERVER PORT IS 8080
 func CloseOrder(id string) error {
 	host := &http.Client{}
-	logrus.Printf("Received request to close order %s", id)
+	logrus.Printf("Received request to close order %s\n", id)
 	url := fmt.Sprintf("http://server:8080/client/order/%s", id)
 	req, err := http.NewRequest(http.MethodDelete, url, nil)
 	if err != nil {

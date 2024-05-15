@@ -50,5 +50,9 @@ func ParseBody(ctx echo.Context) (entities.OrderReceiver, []byte) {
 		logrus.Errorf("error while parsing json: %v\n", err)
 		return entities.OrderReceiver{}, nil
 	}
+	if data.ID == "" && data.Description == "" {
+		logrus.Errorln("error while parsing json: both fields are empty")
+		return entities.OrderReceiver{}, nil
+	}
 	return data, r
 }

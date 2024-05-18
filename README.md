@@ -1,4 +1,4 @@
-# A simple to-do list application with echo, redis and docker! 
+# A simple to-do list application with echo, redis and docker. 
 
 ## This project constists of client side and server side. Server accepts "orders" to complete. It verifies everything and then passes them to client side. Client has an ability to close given orders i.e complete them by recieving http requests.
 
